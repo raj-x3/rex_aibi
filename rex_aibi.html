@@ -394,7 +394,7 @@
         let memoryBank = [];
         let isSpeaking = false; 
         
-        const DEFAULT_GEMINI_KEY = "";
+        const DEFAULT_GEMINI_KEY = "AQ.Ab8RN6LwNJY41xn20dxe62X8gm4YywwhxYdZNDKr6Oy5U37FeQ";
         let geminiApiKey = localStorage.getItem("raj_gemini_key") || DEFAULT_GEMINI_KEY;
         function getGeminiUrl() {
             return `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
