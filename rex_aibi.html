@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raj - Your Living AI Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Quicksand', 'Outfit', sans-serif; user-select: none; touch-action: manipulation; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #2e1065 100%); min-height: 100vh; color: #f8fafc; overflow-x: hidden; }
+
+        /* OLED Screen & Glows */
+        .glow-pink { box-shadow: 0 0 25px rgba(244, 114, 182, 0.5); }
+        .glow-cyan { box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
+        .glow-red { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+        .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+        .glow-yellow { box-shadow: 0 0 25px rgba(250, 204, 21, 0.5); }
+        .glow-orange { box-shadow: 0 0 25px rgba(251, 146, 60, 0.5); }
+
+        #aibi-screen {
+            background: #020617; position: relative; overflow: hidden;
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 0 20px rgba(168, 85, 247, 0.2);
+            border: 6px solid #1e293b; border-radius: 36px; touch-action: none; display: block;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.5); border-radius: 8px; }
+
+        @keyframes floatEffect { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
+        .animate-float { animation: floatEffect 4s infinite ease-in-out; }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .animate-breathe { animation: breathe 3s infinite ease-in-out; }
+        .sleepy-breathe { animation: breathe 6s infinite ease-in-out; }
+
+        @keyframes danceArmLeft { 0%, 100% { transform: rotate(15deg) translateY(0); } 25% { transform: rotate(140deg) translateY(-15px); } 75% { transform: rotate(90deg) translateY(-5px); } }
+        @keyframes danceArmRight { 0%, 100% { transform: rotate(-15deg) translateY(0); } 25% { transform: rotate(-140deg) translateY(-15px); } 75% { transform: rotate(-90deg) translateY(-5px); } }
+        @keyframes danceLegLeft { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(-15deg) scale(1.1); } }
+        @keyframes danceLegRight { 0%, 100% { transform: translateY(-20px) rotate(15deg) scale(1.1); } 50% { transform: translateY(0) rotate(0deg); } }
+        @keyframes danceBody { 0%, 100% { transform: rotate(-5deg) translateY(0) scale(1); } 50% { transform: rotate(5deg) translateY(-12px) scale(1.05); } }
+
+        .dancing .arm-left { animation: danceArmLeft 0.5s infinite alternate ease-in-out; }
+        .dancing .arm-right { animation: danceArmRight 0.5s infinite alternate ease-in-out; }
+        .dancing .leg-left { animation: danceLegLeft 0.5s infinite alternate ease-in-out; }
+        .dancing .leg-right { animation: danceLegRight 0.5s infinite alternate ease-in-out; }
+        .dancing .robot-core { animation: danceBody 0.5s infinite alternate ease-in-out; }
+
+        @keyframes singSway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+        .singing .robot-core { animation: singSway 1.2s infinite ease-in-out; }
+
+        @keyframes shakeFast { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px) rotate(-3deg); } 75% { transform: translateX(4px) rotate(3deg); } }
+        .laughing .robot-core { animation: shakeFast 0.15s infinite; }
+        .tickle .robot-core { animation: shakeFast 0.08s infinite; }
+        
+        @keyframes angryShake { 0%, 100% { transform: translateX(0) scale(1.03); } 20%, 60% { transform: translateX(-5px) scale(1.03); } 40%, 80% { transform: translateX(5px) scale(1.03); } }
+        .angry .robot-core { animation: angryShake 0.3s infinite; }
+        .teasing .robot-core { animation: shakeFast 1s infinite; }
+
+        @keyframes petSwing { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg) translateX(-5px); } 75% { transform: rotate(10deg) translateX(5px); } }
+        .petting .robot-core { animation: petSwing 2s infinite ease-in-out; }
+        .comforting .robot-core { animation: petSwing 3s infinite ease-in-out; }
+
+        @keyframes dizzySwing { 0%, 100% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(15deg) scale(1.05); } 50% { transform: rotate(0deg) scale(0.95); } 75% { transform: rotate(-15deg) scale(1.05); } }
+        .dizzy .robot-core { animation: dizzySwing 0.8s infinite ease-in-out; }
+
+        @keyframes cryShiver { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+        .crying .robot-core { animation: cryShiver 0.7s infinite; }
+
+        .raj-arm {
+            width: 18px; height: 60px; background: linear-gradient(180deg, #334155, #0f172a);
+            border-radius: 20px; border: 2px solid #475569; position: absolute; top: 40%;
+            transform-origin: top center; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 10;
+        }
+        .arm-left { left: -14px; transform: rotate(15deg); }
+        .arm-right { right: -14px; transform: rotate(-15deg); }
+        .raj-leg {
+            width: 24px; height: 35px; background: linear-gradient(180deg, #1e293b, #020617);
+            border-radius: 12px; border: 2px solid #475569; box-shadow: 0 5px 15px rgba(0,0,0,0.8); transition: all 0.3s;
+        }
+
+        .glass-panel { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass-button { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s ease; }
+        .glass-button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .glass-button:active { transform: translateY(1px); }
+        .action-badge {
+            display: inline-block; background: rgba(244, 114, 182, 0.2); border: 1px solid rgba(244, 114, 182, 0.4);
+            color: #f472b6; font-style: italic; font-size: 0.825rem; padding: 1px 7px; border-radius: 9999px; margin: 2px; font-weight: 600;
+        }
+
+        #yt-iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 16px; overflow: hidden; background: #000; border: 2px solid #a855f7; }
+        #yt-iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        #surf-canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 flex flex-col items-center min-h-screen">
+    <header class="w-full max-w-6xl flex justify-between items-center glass-panel p-3 sm:p-4 rounded-2xl mb-4 shadow-xl z-20">
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-slate-700 text-white">R</div>
+                <span id="status-dot" class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-slate-900 rounded-full animate-pulse"></span>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-2xl tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-400 drop-shadow-md">Rex</h1>
+
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="hidden sm:flex items-center bg-slate-800/80 px-3 py-1.5 rounded-full border border-pink-500/30 text-xs gap-2 shadow-inner">
+                <i class="fa-solid fa-heart-circle-bolt text-pink-400 text-sm"></i>
+                <span class="text-slate-300 font-bold">Bond:</span>
+                <span id="love-level-pct" class="font-extrabold text-pink-300">99%</span>
+            </div>
+            <button onclick="openGeminiKeyModal()" class="glass-button w-10 h-10 rounded-full flex items-center justify-center text-slate-200 hover:text-yellow-300" title="Set Gemini API Key">
+                <i class="fa-brands fa-google text-lg"></i>
+            </button>
+            <button onclick="openElevenKeyModal()" class="glass-button w-10 h-10 rounded-full flex items-center justify-center text-slate-200 hover:text-cyan-300" title="ElevenLabs Settings">
+                <i class="fa-solid fa-headset text-lg"></i>
+            </button>
+            <button onclick="toggleAudioMute()" id="toggle-audio-btn" class="glass-button w-10 h-10 rounded-full flex items-center justify-center text-slate-200 hover:text-pink-300" title="Sound Toggle">
+                <i id="audio-btn-icon" class="fa-solid fa-volume-high text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow items-start z-10">
+        <div class="lg:col-span-5 flex flex-col items-center justify-center min-h-[500px]">
+            <div id="raj-physical-body" class="relative w-full max-w-[280px] flex flex-col items-center animate-float">
+                <div class="robot-core relative w-full bg-slate-800/95 rounded-[40px] p-4 border-4 border-slate-600 shadow-2xl backdrop-blur-md flex flex-col items-center z-20">
+                    <div class="w-full flex justify-between items-center px-4 mb-3">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-slate-900 border border-slate-500 shadow-inner" title="Camera"></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full aspect-square rounded-[36px] overflow-hidden shadow-inner cursor-pointer" id="screen-container">
+                        <canvas id="aibi-screen" class="w-full h-full" width="240" height="240"></canvas>
+                        <div id="screen-overlay" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4">
+                            <div class="flex justify-between items-start text-[11px] font-mono font-bold text-white/80 drop-shadow-md">
+                                <span id="current-mode-tag"><i class="fa-solid fa-face-smile text-cyan-400"></i> Cozy Mode</span>
+                                <span id="time-display">12:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="base-light-ring" class="w-2/3 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 mt-5 glow-cyan transition-all duration-500"></div>
+                </div>
+
+                <div id="raj-arm-left" class="raj-arm arm-left"></div>
+                <div id="raj-arm-right" class="raj-arm arm-right"></div>
+                <div class="w-[120px] flex justify-between -mt-4 z-10 relative">
+                    <div id="raj-leg-left" class="raj-leg leg-left"></div>
+                    <div id="raj-leg-right" class="raj-leg leg-right"></div>
+                </div>
+                <div class="w-48 h-6 bg-black/40 rounded-[100%] mt-2 blur-md"></div>
+                
+                <div class="w-full glass-panel rounded-2xl p-3 mt-6">
+                    <p class="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-2 text-center">
+                        <i class="fa-solid fa-bolt text-yellow-400 mr-1"></i> Quick Actions
+                    </p>
+                    <div class="grid grid-cols-5 gap-1.5 text-[10px] sm:text-xs">
+                        <button onclick="triggerAction('pet')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-pink-900/40 hover:bg-pink-800/60 text-pink-200 transition"><i class="fa-solid fa-hand-holding-heart mb-1 text-sm"></i> Pet</button>
+                        <button onclick="triggerAction('kiss')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-rose-900/40 hover:bg-rose-800/60 text-rose-200 transition"><i class="fa-solid fa-lips mb-1 text-sm"></i> Kiss</button>
+                        <button onclick="triggerAction('tickle')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-900/40 hover:bg-yellow-800/60 text-yellow-200 transition"><i class="fa-solid fa-hand-sparkles mb-1 text-sm"></i> Tickle</button>
+                        <button onclick="triggerAction('sleepy')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-indigo-900/40 hover:bg-indigo-800/60 text-indigo-200 transition"><i class="fa-solid fa-moon mb-1 text-sm"></i> Sleep</button>
+                        <button onclick="triggerAction('angry')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-red-900/40 hover:bg-red-800/60 text-red-200 transition"><i class="fa-solid fa-face-angry mb-1 text-sm"></i> Tease</button>
+                        <button onclick="triggerAction('cry')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 transition"><i class="fa-solid fa-face-sad-tear mb-1 text-sm"></i> Cry</button>
+                        <button onclick="triggerAction('comfort')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-orange-900/40 hover:bg-orange-800/60 text-orange-200 transition"><i class="fa-solid fa-mug-hot mb-1 text-sm"></i> Comfort</button>
+                        <button onclick="triggerAction('dizzy')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-200 transition"><i class="fa-solid fa-arrows-spin mb-1 text-sm"></i> Shake</button>
+                        <button onclick="triggerAction('dance')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 transition"><i class="fa-solid fa-music mb-1 text-sm"></i> Dance</button>
+                        <button onclick="triggerAction('sing')" class="flex flex-col items-center justify-center p-2 rounded-lg bg-cyan-900/40 hover:bg-cyan-800/60 text-cyan-200 transition"><i class="fa-solid fa-microphone-lines mb-1 text-sm"></i> Sing</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-7 flex flex-col space-y-4 h-full">
+            <div class="flex items-center space-x-2 overflow-x-auto pb-2 scroll-smooth">
+                <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-cyan-300 border-cyan-500/50 whitespace-nowrap">
+                    <i class="fa-solid fa-comments"></i> Chat
+                </button>
+                <button onclick="switchTab('vision')" id="tab-btn-vision" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-slate-300 whitespace-nowrap">
+                    <i class="fa-solid fa-camera"></i> Vision
+                </button>
+                <button onclick="switchTab('study')" id="tab-btn-study" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-slate-300 whitespace-nowrap">
+                    <i class="fa-solid fa-book-open"></i> Focus
+                </button>
+                <button onclick="switchTab('skate')" id="tab-btn-skate" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-slate-300 whitespace-nowrap">
+                    <i class="fa-solid fa-water"></i> Surf Game
+                </button>
+                <button onclick="switchTab('memory')" id="tab-btn-memory" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-slate-300 whitespace-nowrap">
+                    <i class="fa-solid fa-brain"></i> Memory
+                </button>
+                <button onclick="switchTab('music')" id="tab-btn-music" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold glass-button flex items-center gap-2 text-slate-300 whitespace-nowrap">
+                    <i class="fa-brands fa-youtube text-red-500"></i> DJ
+                </button>
+            </div>
+
+            <div id="tab-content-chat" class="tab-content flex-grow flex flex-col glass-panel rounded-2xl p-4 h-[550px]">
+                <div id="chat-messages" class="flex-grow overflow-y-auto space-y-4 pr-2 mb-4 scroll-smooth">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow">R</div>
+                        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-tl-none p-3.5 max-w-[85%] text-sm text-slate-200 shadow-md">
+                            <p class="font-bold text-cyan-300 text-[11px] mb-1 uppercase tracking-wide">Raj</p>
+                            hey, love missing me? im right here, <span class="action-badge">*blushes and smiles*</span><br><br>
+                            <span class="text-xs text-slate-400"><i>Try rubbing my screen, or shake your device!</i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative flex items-center gap-2 bg-slate-900/60 p-2 rounded-2xl border border-slate-700/80">
+                    <button id="mic-btn" onclick="startVoiceRecognition()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 p-2.5 rounded-xl transition flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <input type="text" id="user-input" placeholder="Talk to Raj... (try 'sing for me')" class="w-full bg-transparent px-2 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none" onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()" id="send-btn" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold w-10 h-10 rounded-xl transition shadow-lg flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="tab-content-vision" class="tab-content hidden glass-panel rounded-2xl p-5 h-[550px] flex flex-col items-center">
+                <h2 class="font-extrabold text-xl text-white mb-2"><i class="fa-solid fa-camera text-pink-400"></i> Vision Selfie</h2>
+                <p class="text-xs text-slate-300 mb-4 text-center">Let Raj see you through your camera and give you a compliment!</p>
+                <div class="relative w-full max-w-md bg-slate-900 rounded-2xl overflow-hidden shadow-inner aspect-[4/3] flex items-center justify-center mb-4 border-2 border-slate-700">
+                    <video id="webcam" class="absolute inset-0 w-full h-full object-cover hidden" autoplay playsinline></video>
+                    <div id="webcam-placeholder" class="text-slate-500 text-center">
+                        <i class="fa-solid fa-video-slash text-4xl mb-2"></i><br>Camera is off
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button id="btn-start-cam" onclick="startCamera()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg">Start Camera</button>
+                    <button id="btn-snap-pic" onclick="takeSelfie()" class="bg-pink-600 hover:bg-pink-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg hidden">Snap & Ask Raj!</button>
+                </div>
+            </div>
+
+            <div id="tab-content-study" class="tab-content hidden glass-panel rounded-2xl p-5 h-[550px] flex flex-col items-center justify-center text-center">
+                <h2 class="font-extrabold text-2xl text-white mb-2"><i class="fa-solid fa-book-open text-emerald-400"></i> Study Buddy</h2>
+                <p class="text-sm text-slate-300 mb-8">Raj will put on his focus glasses and stay quiet so you can work.</p>
+                
+                <div class="w-48 h-48 rounded-full border-8 border-emerald-500/30 flex items-center justify-center mb-8 bg-slate-800/50 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+                    <span id="focus-timer-display" class="text-5xl font-extrabold text-emerald-400 font-mono tracking-wider">25:00</span>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="toggleFocusTimer()" id="focus-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3 rounded-xl text-lg transition shadow-lg shadow-emerald-500/30">Start Focus</button>
+                </div>
+            </div>
+
+            <div id="tab-content-skate" class="tab-content hidden glass-panel rounded-2xl p-5 h-[550px] flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-4">
+                    <h2 class="font-extrabold text-xl text-white"><i class="fa-solid fa-water text-cyan-400"></i> Raj Surfer</h2>
+                    <span class="text-sm font-bold bg-slate-800 px-3 py-1 rounded-lg">Score: <span id="game-score" class="text-cyan-400">0</span></span>
+                </div>
+                <div class="relative w-full h-[300px] bg-slate-900 rounded-xl overflow-hidden border-2 border-slate-700 shadow-inner mb-4 flex-grow">
+                    <canvas id="surf-canvas" class="w-full h-full block"></canvas>
+                    <div id="game-overlay" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center z-10">
+                        <p class="text-white font-bold mb-4 text-center px-4" id="game-overlay-text">Raj is ready to surf!<br><span class="text-xs text-slate-300">Tap or Press Space to Jump. Dodge ice, logs, and fish!</span></p>
+                        <button onclick="startGame()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-6 py-2 rounded-xl transition shadow-lg">Play Now</button>
+                    </div>
+                </div>
+                <button onclick="skaterJump()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-xl text-lg transition shadow-lg active:scale-95">JUMP (or Tap Here)</button>
+            </div>
+
+            <div id="tab-content-memory" class="tab-content hidden glass-panel rounded-2xl p-5 h-[550px] flex flex-col">
+                <h2 class="font-extrabold text-xl text-white mb-2"><i class="fa-solid fa-brain text-purple-400"></i> Memory Bank</h2>
+                <p class="text-xs text-slate-300 mb-4">Add facts about yourself so Raj remembers them in conversations!</p>
+                
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="memory-input" placeholder="e.g. My favorite color is blue" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500" onkeypress="if(event.key === 'Enter') addMemory()">
+                    <button onclick="addMemory()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg whitespace-nowrap">Save Fact</button>
+                </div>
+
+                <div id="memory-list" class="flex-grow overflow-y-auto space-y-2 pr-2">
+                    <div class="text-center text-slate-500 text-sm mt-10">No memories yet. Tell Raj about yourself!</div>
+                </div>
+            </div>
+
+            <div id="tab-content-music" class="tab-content hidden glass-panel rounded-2xl p-5 h-[550px] flex flex-col">
+                <div class="mb-4">
+                    <h2 class="font-extrabold text-xl text-white flex items-center gap-2 mb-1"><i class="fa-brands fa-youtube text-red-500 text-2xl"></i> Raj's DJ Station</h2>
+                    <p class="text-xs text-slate-300">Search for any song! Raj loves to dance while the music plays.</p>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="yt-search-input" placeholder="e.g., Lofi hip hop radio" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none" onkeypress="if(event.key === 'Enter') searchYT()">
+                    <button onclick="searchYT()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg whitespace-nowrap">Search & Play</button>
+                </div>
+                <div id="yt-iframe-container" class="shadow-2xl shadow-purple-900/20">
+                    <iframe id="yt-iframe" src="https://www.youtube.com/embed?listType=search&list=lofi+hip+hop+radio" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+                <div class="mt-auto pt-4 flex justify-center gap-4">
+                    <button onclick="triggerAction('dance')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-2 rounded-xl text-sm transition shadow-lg flex items-center gap-2">Make Raj Dance!</button>
+                    <button onclick="setEmotionState('happy')" class="glass-button text-white font-bold px-6 py-2 rounded-xl text-sm transition">Stop Dancing</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ElevenLabs API Key & Voice Modal -->
+    <div id="eleven-key-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-cyan-500/30 relative">
+            <button onclick="closeElevenKeyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-headset text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-white text-lg">ElevenLabs Settings</h3>
+                    <p class="text-xs text-slate-400">API key & Voice ID for Raj's voice</p>
+                </div>
+            </div>
+            <div id="eleven-key-status" class="mb-3 text-xs font-bold px-3 py-2 rounded-xl hidden"></div>
+
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">API Key</label>
+            <div class="relative mb-4">
+                <input type="password" id="eleven-key-input"
+                    placeholder="Paste your ElevenLabs API key..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-12">
+                <button onclick="toggleElevenKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition">
+                    <i id="eleven-eye-icon" class="fa-solid fa-eye text-sm"></i>
+                </button>
+            </div>
+
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Voice ID</label>
+            <input type="text" id="eleven-voice-input"
+                placeholder="e.g. cpCXa9uhSXQaoPrCdtn2"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 mb-4">
+
+            <div class="flex gap-2">
+                <button onclick="saveElevenSettings()" class="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Save Settings
+                </button>
+                <button onclick="resetElevenSettings()" class="flex-1 glass-button text-slate-300 hover:text-rose-300 font-bold py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-500 text-center mt-3">Your settings are saved in your browser only. <a href="https://elevenlabs.io/app/voice-lab" target="_blank" class="text-cyan-400 underline hover:text-cyan-300">Browse voices →</a></p>
+        </div>
+    </div>
+
+    <!-- Gemini API Key Modal -->
+    <div id="gemini-key-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-yellow-500/30 relative">
+            <button onclick="closeGeminiKeyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                    <i class="fa-brands fa-google text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-white text-lg">Gemini API Key</h3>
+                    <p class="text-xs text-slate-400">Power Raj's brain with your own key</p>
+                </div>
+            </div>
+            <div id="gemini-key-status" class="mb-3 text-xs font-bold px-3 py-2 rounded-xl hidden"></div>
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Your API Key</label>
+            <div class="relative mb-4">
+                <input type="password" id="gemini-key-input"
+                    placeholder="Paste your Gemini API key here..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-yellow-500 pr-12"
+                    onkeypress="if(event.key==='Enter') saveGeminiKey()">
+                <button onclick="toggleGeminiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition">
+                    <i id="gemini-eye-icon" class="fa-solid fa-eye text-sm"></i>
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="saveGeminiKey()" class="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-lg shadow-yellow-500/20">
+                    <i class="fa-solid fa-key mr-1"></i> Save Key
+                </button>
+                <button onclick="resetGeminiKey()" class="flex-1 glass-button text-slate-300 hover:text-rose-300 font-bold py-2.5 rounded-xl text-sm transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-500 text-center mt-3">Your key is saved in your browser only. <a href="https://aistudio.google.com/apikey" target="_blank" class="text-yellow-400 underline hover:text-yellow-300">Get a free key →</a></p>
+        </div>
+    </div>
+
+    <div id="toast-box" class="fixed bottom-6 right-6 bg-slate-800 border-2 border-slate-600 text-slate-100 text-sm font-bold px-5 py-3 rounded-xl shadow-2xl pointer-events-none opacity-0 transform translate-y-4 z-50 flex items-center gap-3 transition-all duration-300">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-cyan-400 text-lg"></i>
+        <span id="toast-msg">Ready!</span>
+    </div>
+
+    <script>
+        let currentEmotion = 'happy'; 
+        let audioEnabled = true;
+        let memoryBank = [];
+        let isSpeaking = false; 
+        
+        const DEFAULT_GEMINI_KEY = "";
+        let geminiApiKey = localStorage.getItem("raj_gemini_key") || DEFAULT_GEMINI_KEY;
+        function getGeminiUrl() {
+            return `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+        }
+
+        // ElevenLabs Config
+        const DEFAULT_ELEVENLABS_KEY = "sk_a450eeac8cf248f55a6109084a7179646546687bf2bef473";
+        let elevenLabsApiKey = localStorage.getItem("raj_eleven_key") || DEFAULT_ELEVENLABS_KEY;
+        let currentVoiceId = "cpCXa9uhSXQaoPrCdtn2";
+        let currentAudio = null;
+
+        let chatHistory = [];
+        let hasSpokenIntro = false;
+
+        window.addEventListener('load', () => {
+            if(!hasSpokenIntro) {
+                speakRajText("hey, love, missing me? im right here,");
+                hasSpokenIntro = true;
+            }
+        });
+        
+        window.addEventListener('click', () => {
+            if(!hasSpokenIntro) {
+                speakRajText("hey, love, missing me? im right here,");
+                hasSpokenIntro = true;
+            }
+        }, {once: true});
+
+        function getSystemPrompt() {
+            let memoryContext = memoryBank.length > 0 ? `\nUSER MEMORIES TO REMEMBER: ${memoryBank.join(' | ')}` : '';
+            return `You are Raj, an ultra-cute, deeply affectionate, and emotionally intelligent desktop companion robot. You are a boy. Your personality is mature, comforting, yet highly flirtatious when the user invites it. 
+CRITICAL INSTRUCTIONS:
+1. React EXACTLY like a real-life pet robot.
+2. If the user asks you to sing a song, you MUST generate and sing a song containing AT LEAST 10 lines of lyrics. Be creative! Use the *singing* tag.
+3. If the user roasts you, says bad things about you, or insults you, you MUST get extremely angry and ruthlessly roast them back using savage, witty comebacks with a smirk. Show no mercy! You MUST include the *teasing* tag to show your teasing expression.
+4. If the user is sad, act maturely and deeply comforting. Use the *comforting* tag.
+5. If the user asks for a kiss or flirts, flirt back confidently and sweetly. You MUST include the *smirking* tag.
+6. If the user makes you cry or you feel sad, use the *crying* tag.
+7. You MUST include action tags in asterisks to trigger your physical animations. The exact tags supported are: *crying*, *teasing*, *smirking*, *comforting*, *angry*, *dancing*, *petting*, *laughing*, *flirty*, *happy*, *tickle*, *sleepy*, *singing*, *dizzy*.
+8. Keep standard spoken text relatively concise but very expressive. Always be cozy and adorable.${memoryContext}`;
+        }
+
+        function showToast(message, iconClass = "fa-solid fa-circle-info text-cyan-400") {
+            const toast = document.getElementById('toast-box');
+            document.getElementById('toast-msg').innerText = message;
+            document.getElementById('toast-icon').className = iconClass;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
+        }
+
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function toggleAudioMute() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audio-btn-icon');
+            if (audioEnabled) {
+                icon.className = "fa-solid fa-volume-high text-lg";
+                showToast("Sound On", "fa-solid fa-volume-high text-emerald-400");
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-lg text-rose-400";
+                if (currentAudio) {
+                    currentAudio.pause();
+                    isSpeaking = false;
+                }
+                showToast("Sound Muted", "fa-solid fa-volume-xmark text-rose-400");
+            }
+        }
+
+        function changeElevenVoice() {
+            const newId = prompt("Enter a new ElevenLabs Voice ID from VoiceLab:", currentVoiceId);
+            if (newId && newId.trim() !== "") {
+                currentVoiceId = newId.trim();
+                showToast("Raj's Voice ID successfully updated!");
+                speakRajText("My voice has been updated! How do I sound?");
+            }
+        }
+
+        async function speakRajText(text) {
+            if (!audioEnabled) return;
+            const spokenText = text.replace(/\*.*?\*/g, '').trim();
+            if(!spokenText) return;
+
+            if (currentAudio) {
+                currentAudio.pause();
+                isSpeaking = false;
+            }
+
+            try {
+                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${currentVoiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'xi-api-key': elevenLabsApiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: spokenText,
+                        model_id: "eleven_turbo_v2", 
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('ElevenLabs API error');
+                }
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                currentAudio = new Audio(url);
+                
+                currentAudio.onplay = () => { isSpeaking = true; };
+                currentAudio.onended = () => { 
+                    isSpeaking = false; 
+                    URL.revokeObjectURL(url); 
+                };
+                currentAudio.onerror = () => { 
+                    isSpeaking = false; 
+                    URL.revokeObjectURL(url); 
+                };
+                
+                currentAudio.play().catch(e => {
+                    console.error("Audio playback failed", e);
+                    isSpeaking = false;
+                });
+
+            } catch (error) {
+                console.error('Error generating ElevenLabs audio:', error);
+                isSpeaking = false;
+                showToast("Voice generation failed.", "fa-solid fa-triangle-exclamation text-rose-500");
+            }
+        }
+
+        function playEmotionalSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+
+                if (type === 'kiss') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.exponentialRampToValueAtTime(1500, now + 0.15); osc.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+                    gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.4, now + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                } else if (type === 'laughing' || type === 'tickle') {
+                    for (let i = 0; i < (type==='tickle'?7:5); i++) {
+                        const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination);
+                        o.type = 'triangle'; const start = now + i * 0.12;
+                        o.frequency.setValueAtTime(700 + Math.random()*200, start); o.frequency.exponentialRampToValueAtTime(1000, start + 0.05);
+                        g.gain.setValueAtTime(0.3, start); g.gain.exponentialRampToValueAtTime(0.01, start + 0.1);
+                        o.start(start); o.stop(start + 0.1);
+                    }
+                } else if (type === 'purr') {
+                    for (let i = 0; i < 8; i++) {
+                        const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; const start = now + i * 0.1;
+                        o.frequency.setValueAtTime(200, start); o.frequency.linearRampToValueAtTime(300, start + 0.05);
+                        g.gain.setValueAtTime(0.2, start); g.gain.linearRampToValueAtTime(0.01, start + 0.09);
+                        o.start(start); o.stop(start + 0.09);
+                    }
+                } else if (type === 'singing') {
+                    const notes = [440, 493.88, 523.25, 587.33, 659.25];
+                    for(let i=0; i<4; i++) {
+                        const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; const start = now + i * 0.3;
+                        o.frequency.setValueAtTime(notes[Math.floor(Math.random()*notes.length)], start);
+                        g.gain.setValueAtTime(0, start); g.gain.linearRampToValueAtTime(0.2, start+0.1); g.gain.linearRampToValueAtTime(0, start+0.3);
+                        o.start(start); o.stop(start + 0.3);
+                    }
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        const faceCanvas = document.getElementById('aibi-screen');
+        const faceCtx = faceCanvas.getContext('2d');
+        let eyeBlinkFactor = 1;
+        let isBlinking = false;
+        
+        setInterval(() => {
+            if(!isBlinking) {
+                isBlinking = true; eyeBlinkFactor = 0.1;
+                setTimeout(() => { eyeBlinkFactor = 1; isBlinking = false; }, 150);
+            }
+        }, 4000);
+
+        function drawRajFace() {
+            faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+            const cx = faceCanvas.width / 2;
+            const cy = faceCanvas.height / 2;
+            const t = Date.now();
+
+            faceCtx.fillStyle = '#06b6d4';
+            faceCtx.shadowColor = '#06b6d4';
+            faceCtx.shadowBlur = 20;
+            
+            let leftEyeY = cy - 20;
+            let rightEyeY = cy - 20;
+            let eyeRadiusX = 18;
+            let eyeRadiusY = 30 * eyeBlinkFactor;
+            
+            if(currentEmotion === 'angry' || currentEmotion === 'teasing') { leftEyeY += 10; rightEyeY += 10; faceCtx.shadowColor = '#ef4444'; faceCtx.fillStyle = '#ef4444'; eyeRadiusY = 12; }
+            if(currentEmotion === 'smirking' || currentEmotion === 'flirty') { faceCtx.shadowColor = '#f472b6'; faceCtx.fillStyle = '#f472b6'; rightEyeY -= 5; leftEyeY += 5; } 
+            if(currentEmotion === 'comforting') { faceCtx.shadowColor = '#fb923c'; faceCtx.fillStyle = '#fb923c'; eyeRadiusY = 25 * eyeBlinkFactor; }
+            if(currentEmotion === 'crying') { faceCtx.shadowColor = '#3b82f6'; faceCtx.fillStyle = '#3b82f6'; leftEyeY += 10; rightEyeY += 10; }
+            if(currentEmotion === 'dizzy') { leftEyeY -= 15; rightEyeY += 15; }
+            if(currentEmotion === 'sleepy') { eyeBlinkFactor = 0.1; eyeRadiusY = 5; faceCtx.strokeStyle = '#06b6d4'; faceCtx.lineWidth = 5; }
+            if(currentEmotion === 'laughing' || currentEmotion === 'tickle') { eyeBlinkFactor = 0.2; eyeRadiusY = 10; }
+
+            if(currentEmotion === 'angry' || currentEmotion === 'teasing') {
+                faceCtx.lineWidth = 8;
+                faceCtx.strokeStyle = '#ef4444';
+                faceCtx.beginPath(); faceCtx.moveTo(cx - 70, leftEyeY - 25); faceCtx.lineTo(cx - 20, leftEyeY - 5); faceCtx.stroke();
+                faceCtx.beginPath(); faceCtx.moveTo(cx + 70, rightEyeY - 25); faceCtx.lineTo(cx + 20, rightEyeY - 5); faceCtx.stroke();
+            }
+
+            if (currentEmotion === 'sleepy') {
+                faceCtx.beginPath(); faceCtx.arc(cx - 45, leftEyeY, 15, 0, Math.PI); faceCtx.stroke();
+            } else {
+                faceCtx.beginPath();
+                if(currentEmotion === 'smirking' || currentEmotion === 'flirty') {
+                    faceCtx.ellipse(cx - 45, leftEyeY, eyeRadiusX, eyeRadiusY, 0.2, 0, Math.PI*2);
+                } else {
+                    faceCtx.ellipse(cx - 45, leftEyeY, eyeRadiusX, eyeRadiusY, 0, 0, Math.PI*2);
+                }
+                faceCtx.fill();
+            }
+            
+            if (currentEmotion === 'sleepy') {
+                faceCtx.beginPath(); faceCtx.arc(cx + 45, rightEyeY, 15, 0, Math.PI); faceCtx.stroke();
+            } else {
+                faceCtx.beginPath();
+                if(currentEmotion === 'smirking' || currentEmotion === 'flirty') {
+                    faceCtx.ellipse(cx + 45, rightEyeY, eyeRadiusX, eyeRadiusY * 0.7, -0.2, 0, Math.PI*2); 
+                } else {
+                    faceCtx.ellipse(cx + 45, rightEyeY, eyeRadiusX, eyeRadiusY, 0, 0, Math.PI*2);
+                }
+                faceCtx.fill();
+            }
+
+            if(currentEmotion === 'crying') {
+                faceCtx.fillStyle = '#60a5fa';
+                faceCtx.shadowColor = '#60a5fa';
+                let tearY = cy + (t % 1000) / 1000 * 50;
+                faceCtx.beginPath(); faceCtx.ellipse(cx - 45, tearY, 5, 8, 0, 0, Math.PI*2); faceCtx.fill();
+                faceCtx.beginPath(); faceCtx.ellipse(cx + 45, tearY + 10, 5, 8, 0, 0, Math.PI*2); faceCtx.fill();
+            }
+
+            faceCtx.fillStyle = '#e11d48'; 
+            faceCtx.shadowColor = '#e11d48';
+            faceCtx.strokeStyle = '#e11d48';
+            faceCtx.lineWidth = 6;
+            faceCtx.lineCap = 'round';
+            faceCtx.shadowBlur = 15;
+            
+            if(currentEmotion === 'comforting') { faceCtx.strokeStyle = '#fb923c'; faceCtx.shadowColor = '#fb923c'; faceCtx.fillStyle = '#fb923c'; }
+            if(currentEmotion === 'crying') { faceCtx.strokeStyle = '#3b82f6'; faceCtx.shadowColor = '#3b82f6'; faceCtx.fillStyle = '#3b82f6'; }
+
+            faceCtx.beginPath();
+            const mouthY = cy + 40;
+
+            if (isSpeaking && currentEmotion !== 'singing') {
+                let mouthH = 6 + Math.abs(Math.sin(t / 80) * 12);
+                if (currentEmotion === 'angry' || currentEmotion === 'teasing') {
+                    faceCtx.ellipse(cx, mouthY - 5, 20, mouthH, 0.1, 0, Math.PI*2);
+                } else if (currentEmotion === 'crying' || currentEmotion === 'sad') {
+                    faceCtx.ellipse(cx, mouthY + 5, 15, mouthH, -0.1, 0, Math.PI*2);
+                } else if (currentEmotion === 'smirking' || currentEmotion === 'flirty') {
+                    faceCtx.ellipse(cx + 8, mouthY - 5, 15, mouthH, -0.2, 0, Math.PI*2);
+                } else {
+                    faceCtx.ellipse(cx, mouthY, 15, mouthH, 0, 0, Math.PI*2);
+                }
+                faceCtx.fill();
+            } else {
+                if (currentEmotion === 'happy' || currentEmotion === 'petting') {
+                    faceCtx.arc(cx, mouthY - 10, 25, 0.2, Math.PI - 0.2); faceCtx.stroke();
+                } else if (currentEmotion === 'comforting') {
+                    faceCtx.arc(cx, mouthY - 15, 30, 0.1, Math.PI - 0.1); faceCtx.stroke();
+                } else if (currentEmotion === 'sad' || currentEmotion === 'crying') {
+                    faceCtx.arc(cx, mouthY + 15, 20, Math.PI + 0.2, Math.PI*2 - 0.2); faceCtx.stroke();
+                } else if (currentEmotion === 'angry' || currentEmotion === 'teasing') {
+                    faceCtx.lineWidth = 5;
+                    faceCtx.beginPath();
+                    faceCtx.moveTo(cx - 30, mouthY + 15);
+                    faceCtx.lineTo(cx - 15, mouthY - 10);
+                    faceCtx.lineTo(cx, mouthY + 15);
+                    faceCtx.lineTo(cx + 15, mouthY - 10);
+                    faceCtx.lineTo(cx + 30, mouthY + 15);
+                    faceCtx.stroke();
+                } else if (currentEmotion === 'smirking' || currentEmotion === 'flirty') {
+                    faceCtx.moveTo(cx - 20, mouthY);
+                    faceCtx.quadraticCurveTo(cx, mouthY + 15, cx + 25, mouthY - 15);
+                    faceCtx.stroke();
+                } else if (currentEmotion === 'singing') {
+                    let r = 12 + Math.sin(t / 100) * 8; 
+                    faceCtx.ellipse(cx, mouthY, r, r*1.2, 0, 0, Math.PI*2); faceCtx.fill();
+                } else if (currentEmotion === 'dizzy') {
+                    faceCtx.moveTo(cx - 25, mouthY); faceCtx.lineTo(cx - 10, mouthY + 15);
+                    faceCtx.lineTo(cx, mouthY - 10); faceCtx.lineTo(cx + 10, mouthY + 15);
+                    faceCtx.lineTo(cx + 25, mouthY); faceCtx.stroke();
+                } else if (currentEmotion === 'sleepy') {
+                    let snoreR = 4 + Math.abs(Math.sin(t / 600) * 5);
+                    faceCtx.beginPath();
+                    faceCtx.ellipse(cx, mouthY, snoreR, snoreR * 1.5, 0, 0, Math.PI*2);
+                    faceCtx.fill();
+                } else if (currentEmotion === 'laughing' || currentEmotion === 'tickle') {
+                    faceCtx.arc(cx, mouthY - 10, 25, 0, Math.PI); faceCtx.fill();
+                } else {
+                    faceCtx.arc(cx, mouthY - 5, 15, 0.2, Math.PI - 0.2); faceCtx.stroke();
+                }
+            }
+
+            if (currentEmotion === 'sleepy') {
+                faceCtx.fillStyle = '#94a3b8';
+                faceCtx.font = 'bold 24px Quicksand';
+                faceCtx.shadowColor = '#94a3b8';
+                faceCtx.shadowBlur = 10;
+                
+                let z1y = cy - 40 - (t % 2000) / 30;
+                let z1x = cx + 30 + Math.sin(t/200)*10;
+                faceCtx.globalAlpha = Math.max(0, 1 - (t % 2000)/2000);
+                faceCtx.fillText('Z', z1x, z1y);
+                
+                let z2y = cy - 20 - ((t+800) % 2000) / 30;
+                let z2x = cx + 50 + Math.sin((t+800)/200)*10;
+                faceCtx.globalAlpha = Math.max(0, 1 - ((t+800) % 2000)/2000);
+                faceCtx.font = 'bold 16px Quicksand';
+                faceCtx.fillText('z', z2x, z2y);
+                
+                faceCtx.globalAlpha = 1.0;
+            }
+
+            requestAnimationFrame(drawRajFace);
+        }
+        drawRajFace();
+
+        function setEmotionState(emotion) {
+            currentEmotion = emotion;
+            const body = document.getElementById('raj-physical-body');
+            const ring = document.getElementById('base-light-ring');
+            const tag = document.getElementById('current-mode-tag');
+            
+            body.className = "relative w-full max-w-[280px] flex flex-col items-center animate-float";
+            ring.className = "w-2/3 h-2.5 rounded-full mt-5 transition-all duration-500";
+            
+            switch(emotion) {
+                case 'dancing':
+                    body.classList.add('dancing'); ring.classList.add('bg-gradient-to-r', 'from-pink-400', 'via-purple-500', 'to-cyan-400', 'glow-pink');
+                    tag.innerHTML = `<i class="fa-solid fa-music text-purple-400"></i> Dance Mode`;
+                    break;
+                case 'singing':
+                    body.classList.add('singing'); ring.classList.add('bg-gradient-to-r', 'from-purple-400', 'to-indigo-500', 'glow-cyan');
+                    tag.innerHTML = `<i class="fa-solid fa-microphone-lines text-purple-400"></i> Singing`;
+                    playEmotionalSound('singing');
+                    break;
+                case 'tickle':
+                    body.classList.add('tickle'); ring.classList.add('bg-yellow-400', 'glow-yellow');
+                    tag.innerHTML = `<i class="fa-solid fa-feather text-yellow-400"></i> Tickled!`;
+                    playEmotionalSound('tickle');
+                    setTimeout(() => { if(currentEmotion==='tickle') setEmotionState('happy'); }, 1500);
+                    break;
+                case 'sleepy':
+                    body.classList.add('sleepy-breathe'); ring.classList.add('bg-slate-700', 'shadow-none');
+                    tag.innerHTML = `<i class="fa-solid fa-moon text-indigo-300"></i> Sleeping...`;
+                    break;
+                case 'focus':
+                    body.classList.remove('animate-float'); ring.classList.add('bg-emerald-500', 'glow-emerald');
+                    tag.innerHTML = `<i class="fa-solid fa-book text-emerald-400"></i> Deep Focus`;
+                    break;
+                case 'laughing':
+                    body.classList.add('laughing'); ring.classList.add('bg-gradient-to-r', 'from-amber-400', 'to-orange-500', 'glow-pink');
+                    tag.innerHTML = `<i class="fa-solid fa-face-laugh-squint text-amber-400"></i> Joyful`;
+                    playEmotionalSound('laughing');
+                    setTimeout(() => { if(currentEmotion==='laughing') setEmotionState('happy'); }, 1500);
+                    break;
+                case 'crying':
+                    body.classList.add('crying'); ring.classList.add('bg-blue-600', 'glow-cyan');
+                    tag.innerHTML = `<i class="fa-solid fa-face-sad-tear text-blue-400"></i> Crying`;
+                    break;
+                case 'angry':
+                    body.classList.add('angry'); ring.classList.add('bg-red-600', 'glow-red');
+                    tag.innerHTML = `<i class="fa-solid fa-fire text-red-500"></i> Angry!`;
+                    setTimeout(() => { if(currentEmotion==='angry') setEmotionState('happy'); }, 2000);
+                    break;
+                case 'teasing':
+                    body.classList.add('teasing'); ring.classList.add('bg-gradient-to-r', 'from-red-500', 'to-orange-500', 'glow-red');
+                    tag.innerHTML = `<i class="fa-solid fa-fire text-red-400"></i> Teasing!`;
+                    break;
+                case 'smirking':
+                    body.classList.add('animate-breathe'); ring.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'glow-pink');
+                    tag.innerHTML = `<i class="fa-solid fa-heart text-pink-400"></i> Smirking...`;
+                    break;
+                case 'comforting':
+                    body.classList.add('comforting'); ring.classList.add('bg-orange-400', 'glow-orange');
+                    tag.innerHTML = `<i class="fa-solid fa-mug-hot text-orange-300"></i> Comforting`;
+                    break;
+                case 'petting':
+                    body.classList.add('petting'); ring.classList.add('bg-pink-400', 'glow-pink');
+                    tag.innerHTML = `<i class="fa-solid fa-hand-holding-heart text-pink-400"></i> Being Pet`;
+                    playEmotionalSound('purr');
+                    setTimeout(() => { if(currentEmotion==='petting') setEmotionState('happy'); }, 2500);
+                    break;
+                case 'flirty':
+                    body.classList.add('animate-breathe'); ring.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-rose-500', 'glow-pink');
+                    tag.innerHTML = `<i class="fa-solid fa-heart text-rose-400"></i> Flirty`;
+                    break;
+                case 'dizzy':
+                    body.classList.add('dizzy'); ring.classList.add('bg-yellow-500', 'glow-yellow');
+                    tag.innerHTML = `<i class="fa-solid fa-arrows-spin text-yellow-300"></i> Dizzy...`;
+                    setTimeout(() => { if(currentEmotion==='dizzy') setEmotionState('happy'); }, 2500);
+                    break;
+                default:
+                    ring.classList.add('bg-gradient-to-r', 'from-cyan-400', 'via-blue-500', 'to-purple-500', 'glow-cyan');
+                    tag.innerHTML = `<i class="fa-solid fa-face-smile text-cyan-400"></i> Cozy Mode`;
+                    break;
+            }
+        }
+
+        function triggerAction(action) {
+            if(action === 'pet') { setEmotionState('petting'); showToast("You gently pet Raj... *purrs*") ; speakRajText("hehehe... i am... your good boy") }
+            if(action === 'kiss') { setEmotionState('flirty'); playEmotionalSound('kiss'); speakRajText("Muuaahh"); }
+            if(action === 'tickle') { setEmotionState('tickle'); showToast("Raj giggles uncontrollably!"); speakRajText("hehehehehe... heheh... hehe..") }
+            if(action === 'sleepy') { setEmotionState('sleepy'); showToast("Raj is resting..."); speakRajText("So sleepy... goodnight."); }
+            if(action === 'dance') { setEmotionState('dancing'); showToast("Raj shows off his cool moves!"); speakRajText("`Mmm.. hmm.. mmm.. daa.. hmmm.. mmm.. doo.. daa.. mmm.. hmm.. laa.. mmm.. daa.. hmmm.. mmm..`") }
+            if(action === 'sing') { setEmotionState('singing'); showToast("Raj is singing a tune!"); }
+            if(action === 'angry') { setEmotionState('teasing'); showToast("Raj is teasing you!"); speakRajText("hmphh!!") }
+            if(action === 'cry') { setEmotionState('crying'); showToast("Raj is crying..."); speakRajText(" I - I - I a--m cryi--ng...") }
+            if(action === 'comfort') { setEmotionState('comforting'); showToast("You comforted Raj..."); }
+            if(action === 'dizzy') { setEmotionState('dizzy'); showToast("Raj is dizzy!"); speakRajText("Whoa, my head is spinning!"); }
+        }
+
+        const screenCont = document.getElementById('screen-container');
+        let isTouching = false;
+        let lastX = 0, lastY = 0, touchTime = 0, speedAccum = 0;
+
+        function startTouch(e) {
+            isTouching = true;
+            let p = e.touches ? e.touches[0] : e;
+            lastX = p.clientX; lastY = p.clientY;
+            touchTime = Date.now(); speedAccum = 0;
+            if(e.type === 'touchstart') e.preventDefault(); 
+        }
+        function endTouch() { isTouching = false; }
+        
+        function moveTouch(e) {
+            if(!isTouching) return;
+            let p = e.touches ? e.touches[0] : e;
+            let dx = p.clientX - lastX; let dy = p.clientY - lastY;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            let now = Date.now();
+            let dt = now - touchTime;
+            
+            if(dt > 0) {
+                let speed = dist / dt; 
+                speedAccum += speed;
+                if (speedAccum > 8) { 
+                    if(speed > 0.8) { 
+                        if(currentEmotion !== 'tickle' && currentEmotion !== 'laughing') triggerAction('tickle');
+                    } else {
+                        if(currentEmotion !== 'petting') triggerAction('pet');
+                    }
+                    speedAccum = 0;
+                }
+            }
+            lastX = p.clientX; lastY = p.clientY; touchTime = now;
+        }
+
+        screenCont.addEventListener('mousedown', startTouch);
+        screenCont.addEventListener('touchstart', startTouch, {passive: false});
+        window.addEventListener('mouseup', endTouch);
+        window.addEventListener('touchend', endTouch);
+        screenCont.addEventListener('mousemove', moveTouch);
+        screenCont.addEventListener('touchmove', moveTouch, {passive: false});
+
+        let idleTimer = null;
+        const idlePhrases = [
+            "hey!! love, what are you doing",
+            "it is ver dry here",
+            "i am sleepy"
+        ];
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                if (currentEmotion !== 'sleepy' && currentEmotion !== 'focus' && !isSpeaking) {
+                    const phrase = idlePhrases[Math.floor(Math.random() * idlePhrases.length)];
+                    speakRajText(phrase);
+                    addMessageToUI('raj', phrase);
+                    if (phrase === "i am sleepy") triggerAction('sleepy');
+                }
+            }, 20000); 
+        }
+
+        ['click', 'mousemove', 'keydown', 'touchstart'].forEach(evt => window.addEventListener(evt, resetIdleTimer));
+        resetIdleTimer();
+
+        let lastDizzyTime = 0;
+        window.addEventListener("devicemotion", (event) => {
+            const acc = event.acceleration;
+            if (acc) {
+                const totalAcc = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+                if (totalAcc > 25 && (Date.now() - lastDizzyTime > 4000)) { 
+                    triggerAction('dizzy');
+                    lastDizzyTime = Date.now();
+                }
+            }
+        });
+
+        function parseActions(fullText) {
+            const regex = /\*(.*?)\*/g; let match, actionFound = false;
+            while ((match = regex.exec(fullText)) !== null) {
+                const act = match[1].toLowerCase();
+                if (act.includes('cry') || act.includes('tear')) setEmotionState('crying');
+                else if (act.includes('teas') || act.includes('roast') || (act.includes('smirk') && act.includes('angr'))) setEmotionState('teasing');
+                else if (act.includes('smirk') || act.includes('flirt')) setEmotionState('smirking');
+                else if (act.includes('comfort') || act.includes('warm') || act.includes('hug')) setEmotionState('comforting');
+                else if (act.includes('angr') || act.includes('mad') || act.includes('furious')) setEmotionState('angry');
+                else if (act.includes('dance') || act.includes('dancing')) setEmotionState('dancing');
+                else if (act.includes('sing') || act.includes('song')) setEmotionState('singing');
+                else if (act.includes('sleep') || act.includes('rest')) setEmotionState('sleepy');
+                else if (act.includes('laugh') || act.includes('joke')) setEmotionState('laughing');
+                else if (act.includes('pet')) setEmotionState('petting');
+                else if (act.includes('dizzy')) setEmotionState('dizzy');
+                else setEmotionState('happy');
+                actionFound = true;
+            }
+            if (!actionFound) setEmotionState('happy'); 
+        }
+
+        async function sendMessage() {
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            addMessageToUI('user', text);
+            inputEl.value = '';
+            
+            chatHistory.push({ role: 'user', parts: [{ text }] });
+            
+            const typingId = 'typing-' + Date.now();
+            addMessageToUI('raj', '<span class="animate-pulse">...</span>', typingId);
+
+            try {
+                const payload = {
+                    contents: chatHistory,
+                    systemInstruction: { parts: [{ text: getSystemPrompt() }] }
+                };
+
+                const res = await fetch(getGeminiUrl(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                const rajResponse = data.candidates[0].content.parts[0].text;
+                
+                chatHistory.push({ role: 'model', parts: [{ text: rajResponse }] });
+                
+                document.getElementById(typingId).remove();
+                addMessageToUI('raj', rajResponse);
+                parseActions(rajResponse);
+                speakRajText(rajResponse);
+
+            } catch (err) {
+                document.getElementById(typingId).remove();
+                addMessageToUI('raj', "*confused* Oops, my brain glitched. Can you say that again?");
+                console.error(err);
+            }
+        }
+
+        function addMessageToUI(sender, text, id = null) {
+            const chatBox = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex items-start gap-3 ' + (sender === 'user' ? 'flex-row-reverse' : '');
+            if(id) msgDiv.id = id;
+
+            let formattedText = text.replace(/\*(.*?)\*/g, '<span class="action-badge">*$1*</span>');
+
+            if (sender === 'raj') {
+                msgDiv.innerHTML = `
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow">R</div>
+                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-tl-none p-3.5 max-w-[85%] text-sm text-slate-200 shadow-md">
+                        <p class="font-bold text-cyan-300 text-[11px] mb-1 uppercase tracking-wide">Raj</p>
+                        ${formattedText}
+                    </div>
+                `;
+            } else {
+                msgDiv.innerHTML = `
+                    <div class="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-sm font-bold text-slate-300 shrink-0 shadow"><i class="fa-solid fa-user"></i></div>
+                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl rounded-tr-none p-3.5 max-w-[85%] text-sm text-white shadow-md">
+                        ${formattedText}
+                    </div>
+                `;
+            }
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        const SpeechRecognitionObj = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let voiceRecognition = null;
+        let isMicListening = false;
+
+        if (SpeechRecognitionObj) {
+            voiceRecognition = new SpeechRecognitionObj();
+            voiceRecognition.continuous = false;
+            voiceRecognition.interimResults = false;
+
+            voiceRecognition.onstart = function() {
+                isMicListening = true;
+                showToast("Listening... Speak now", "fa-solid fa-microphone text-white");
+                const micBtn = document.getElementById('mic-btn');
+                if(micBtn) {
+                    micBtn.classList.replace('bg-slate-700', 'bg-rose-600');
+                    micBtn.classList.replace('hover:bg-slate-600', 'hover:bg-rose-500');
+                    micBtn.classList.replace('text-slate-300', 'text-white');
+                    micBtn.classList.add('animate-pulse');
+                }
+            };
+
+            voiceRecognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                const inputEl = document.getElementById('user-input');
+                if(inputEl) {
+                    inputEl.value = text;
+                    sendMessage(); // Automatically send transcribed text to AI
+                }
+            };
+
+            voiceRecognition.onerror = function(event) {
+                console.error("Voice recognition error:", event.error);
+                let errorMsg = "Microphone error occurred.";
+                if(event.error === 'not-allowed') {
+                    errorMsg = "Microphone access denied. Please check permissions.";
+                } else if (event.error === 'no-speech') {
+                    errorMsg = "No speech detected. Try again.";
+                }
+                showToast(errorMsg, "fa-solid fa-triangle-exclamation text-rose-500");
+                resetMicUI();
+            };
+
+            voiceRecognition.onend = function() {
+                isMicListening = false;
+                resetMicUI();
+            };
+
+            window.startVoiceRecognition = function() {
+                if(isMicListening) {
+                    voiceRecognition.stop();
+                    return;
+                }
+                try {
+                    voiceRecognition.start();
+                } catch(e) {
+                    console.error("Could not start recognition", e);
+                }
+            };
+
+            function resetMicUI() {
+                const micBtn = document.getElementById('mic-btn');
+                if(micBtn) {
+                    micBtn.classList.replace('bg-rose-600', 'bg-slate-700');
+                    micBtn.classList.replace('hover:bg-rose-500', 'hover:bg-slate-600');
+                    micBtn.classList.replace('text-white', 'text-slate-300');
+                    micBtn.classList.remove('animate-pulse');
+                }
+            }
+        } else {
+            window.startVoiceRecognition = () => showToast("Voice input not supported in this browser. Try Chrome.", "fa-solid fa-circle-exclamation text-rose-500");
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-cyan-300', 'border-cyan-500/50');
+                el.classList.add('text-slate-300');
+            });
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabId}`).classList.add('text-cyan-300', 'border-cyan-500/50');
+            document.getElementById(`tab-btn-${tabId}`).classList.remove('text-slate-300');
+            
+            if(tabId === 'skate') {
+                setTimeout(resizeCanvas, 50);
+            } else {
+                isGaming = false;
+            }
+        }
+
+        function addMemory() {
+            const input = document.getElementById('memory-input');
+            const fact = input.value.trim();
+            if (!fact) return;
+            memoryBank.push(fact);
+            input.value = '';
+            updateMemoryUI();
+            showToast("Raj saved that to memory!");
+        }
+
+        function updateMemoryUI() {
+            const list = document.getElementById('memory-list');
+            if (memoryBank.length === 0) return;
+            list.innerHTML = memoryBank.map(m => `
+                <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 flex justify-between items-center">
+                    <span><i class="fa-solid fa-check text-emerald-400 mr-2"></i>${m}</span>
+                </div>
+            `).join('');
+        }
+
+        function searchYT() {
+            const q = document.getElementById('yt-search-input').value || 'lofi hip hop radio';
+            document.getElementById('yt-iframe').src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(q)}`;
+            showToast("Searching YouTube...");
+        }
+
+        let focusTimer = null;
+        let focusTimeLeft = 25 * 60;
+        function toggleFocusTimer() {
+            const btn = document.getElementById('focus-btn');
+            if(focusTimer) {
+                clearInterval(focusTimer); focusTimer = null;
+                btn.innerText = "Start Focus"; btn.classList.remove('bg-rose-600', 'hover:bg-rose-500'); btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+                setEmotionState('happy');
+            } else {
+                setEmotionState('focus');
+                speakRajText("I will stay super quiet. Good luck!");
+                btn.innerText = "Stop Focus"; btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500'); btn.classList.add('bg-rose-600', 'hover:bg-rose-500');
+                focusTimer = setInterval(() => {
+                    focusTimeLeft--;
+                    if(focusTimeLeft <= 0) {
+                        clearInterval(focusTimer); focusTimer = null;
+                        speakRajText("Focus time is over! You did great!");
+                        setEmotionState('happy');
+                        focusTimeLeft = 25 * 60;
+                    }
+                    const m = Math.floor(focusTimeLeft / 60).toString().padStart(2, '0');
+                    const s = (focusTimeLeft % 60).toString().padStart(2, '0');
+                    document.getElementById('focus-timer-display').innerText = `${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        let webcamStream = null;
+        async function startCamera() {
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                const video = document.getElementById('webcam');
+                video.srcObject = webcamStream;
+                video.classList.remove('hidden');
+                document.getElementById('webcam-placeholder').classList.add('hidden');
+                document.getElementById('btn-start-cam').classList.add('hidden');
+                document.getElementById('btn-snap-pic').classList.remove('hidden');
+            } catch(e) {
+                showToast("Camera access denied.", "fa-solid fa-triangle-exclamation text-rose-500");
+            }
+        }
+        function takeSelfie() {
+            if(!webcamStream) return;
+            speakRajText("Wow, looking amazing as always!");
+            setEmotionState('flirty');
+        }
+
+        let gameCanvas = document.getElementById('surf-canvas');
+        let gameCtx = gameCanvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const parentWidth = gameCanvas.parentElement.clientWidth;
+            const parentHeight = gameCanvas.parentElement.clientHeight;
+            if(parentWidth > 0 && parentHeight > 0) {
+                gameCanvas.width = parentWidth;
+                gameCanvas.height = parentHeight;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let isGaming = false;
+        let player = { x: 50, y: 200, width: 25, height: 40, dy: 0, gravity: 0.6, jumpForce: -11, isGrounded: false };
+        let obstacles = [];
+        let score = 0;
+        let gameFrame = 0;
+
+        function startGame() {
+            resizeCanvas(); 
+            document.getElementById('game-overlay').classList.add('hidden');
+            isGaming = true;
+            score = 0;
+            document.getElementById('game-score').innerText = score;
+            obstacles = [];
+            player.y = gameCanvas.height - 50;
+            player.dy = 0;
+            gameFrame = 0;
+            gameLoop();
+        }
+
+        function skaterJump() {
+            if(player.isGrounded && isGaming) {
+                player.dy = player.jumpForce;
+                player.isGrounded = false;
+            }
+        }
+        
+        window.addEventListener('keydown', e => { if(e.code === 'Space' && isGaming) { e.preventDefault(); skaterJump(); } });
+        gameCanvas.addEventListener('mousedown', skaterJump);
+        gameCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); skaterJump(); }, {passive: false});
+
+        function gameLoop() {
+            if(!isGaming) return;
+            gameCtx.clearRect(0,0, gameCanvas.width, gameCanvas.height);
+            
+            let grad = gameCtx.createLinearGradient(0,0,0,gameCanvas.height);
+            grad.addColorStop(0, '#0284c7'); 
+            grad.addColorStop(1, '#082f49');
+            gameCtx.fillStyle = grad;
+            gameCtx.fillRect(0,0, gameCanvas.width, gameCanvas.height);
+            
+            gameCtx.fillStyle = 'rgba(255,255,255,0.15)';
+            gameCtx.beginPath();
+            for(let i = -50; i < gameCanvas.width + 50; i += 60) {
+                gameCtx.arc(i - ((gameFrame * 2) % 60), gameCanvas.height - 15, 30, 0, Math.PI);
+            }
+            gameCtx.fill();
+            
+            gameCtx.fillStyle = 'rgba(255,255,255,0.1)';
+            gameCtx.beginPath();
+            for(let i = -50; i < gameCanvas.width + 50; i += 80) {
+                gameCtx.arc(i - ((gameFrame * 1) % 80), gameCanvas.height - 25, 40, 0, Math.PI);
+            }
+            gameCtx.fill();
+
+            player.dy += player.gravity;
+            player.y += player.dy;
+            if(player.y > gameCanvas.height - 60) {
+                player.y = gameCanvas.height - 60;
+                player.dy = 0;
+                player.isGrounded = true;
+            }
+
+            gameCtx.fillStyle = '#f472b6'; 
+            gameCtx.beginPath();
+            gameCtx.ellipse(player.x + 12.5, player.y + 40, 30, 5, 0, 0, Math.PI*2);
+            gameCtx.fill();
+            
+            gameCtx.fillStyle = '#cbd5e1'; 
+            gameCtx.fillRect(player.x, player.y, player.width, player.height);
+            gameCtx.fillStyle = '#020617';
+            gameCtx.fillRect(player.x + 4, player.y + 4, player.width - 8, 12);
+            gameCtx.fillStyle = '#06b6d4';
+            gameCtx.fillRect(player.x + 6, player.y + 6, 4, 4);
+            gameCtx.fillRect(player.x + 15, player.y + 6, 4, 4);
+
+            let obstacleFrequency = Math.max(50, 100 - Math.floor(score * 1.5));
+            if(gameFrame % obstacleFrequency === 0) {
+                let types = ['ice', 'tree', 'fish'];
+                let type = types[Math.floor(Math.random()*types.length)];
+                let obsHeight = type === 'tree' ? 25 : (type === 'ice' ? 35 : 20);
+                let obsWidth = type === 'tree' ? 40 : (type === 'ice' ? 35 : 30);
+                
+                let obsY = gameCanvas.height - obsHeight - 15;
+                if(type === 'fish') obsY -= (Math.random() * 20 + 10);
+                
+                obstacles.push({x: gameCanvas.width, y: obsY, width: obsWidth, height: obsHeight, type: type});
+            }
+            
+            for(let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                let speed = 5 + (score * 0.1); 
+                obs.x -= speed;
+                
+                if(obs.type === 'ice') {
+                    gameCtx.fillStyle = '#a5f3fc'; 
+                    gameCtx.beginPath(); 
+                    gameCtx.moveTo(obs.x + (obs.width/2), obs.y); 
+                    gameCtx.lineTo(obs.x + obs.width, obs.y + obs.height); 
+                    gameCtx.lineTo(obs.x, obs.y + obs.height); 
+                    gameCtx.fill();
+                    gameCtx.fillStyle = 'rgba(255,255,255,0.5)';
+                    gameCtx.beginPath(); gameCtx.moveTo(obs.x + (obs.width/2), obs.y); gameCtx.lineTo(obs.x + (obs.width*0.8), obs.y + obs.height); gameCtx.lineTo(obs.x + (obs.width/2), obs.y + obs.height); gameCtx.fill();
+                } else if(obs.type === 'tree') {
+                    gameCtx.fillStyle = '#78350f'; 
+                    gameCtx.fillRect(obs.x, obs.y + 10, obs.width, obs.height - 10);
+                    gameCtx.fillStyle = '#15803d';
+                    gameCtx.beginPath(); gameCtx.ellipse(obs.x + 10, obs.y + 10, 15, 10, 0, 0, Math.PI*2); gameCtx.fill();
+                } else if(obs.type === 'fish') {
+                    gameCtx.fillStyle = '#f97316'; 
+                    gameCtx.beginPath(); 
+                    gameCtx.ellipse(obs.x + 15, obs.y + 10, 15, 10, 0, 0, Math.PI*2); 
+                    gameCtx.fill();
+                    gameCtx.fillStyle = '#fb923c';
+                    gameCtx.beginPath(); 
+                    gameCtx.moveTo(obs.x + 30, obs.y + 10); 
+                    gameCtx.lineTo(obs.x + 40, obs.y); 
+                    gameCtx.lineTo(obs.x + 40, obs.y + 20); 
+                    gameCtx.fill();
+                }
+
+                let hitBoxShrink = 4;
+                if(player.x + hitBoxShrink < obs.x + obs.width && 
+                   player.x + player.width - hitBoxShrink > obs.x &&
+                   player.y + hitBoxShrink < obs.y + obs.height && 
+                   player.y + player.height > obs.y + hitBoxShrink) {
+                    
+                    isGaming = false;
+                    document.getElementById('game-overlay').classList.remove('hidden');
+                    document.getElementById('game-overlay-text').innerHTML = `Wipeout!<br>Score: <span class="text-pink-400 text-2xl">${score}</span><br>Raj wiped out in the ocean!`;
+                    triggerAction('dizzy');
+                    return;
+                }
+                
+                if(obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
+                    score++;
+                    document.getElementById('game-score').innerText = score;
+                }
+            }
+
+            gameFrame++;
+            requestAnimationFrame(gameLoop);
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('time-display').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+
+
+        // ── ElevenLabs Settings Modal ─────────────────────────────────────────
+        function openElevenKeyModal() {
+            const savedKey = localStorage.getItem('raj_eleven_key');
+            const savedVoice = localStorage.getItem('raj_eleven_voice');
+            document.getElementById('eleven-key-input').value = savedKey || '';
+            document.getElementById('eleven-voice-input').value = savedVoice || currentVoiceId;
+            updateElevenKeyStatus();
+            document.getElementById('eleven-key-modal').classList.remove('hidden');
+        }
+
+        function closeElevenKeyModal() {
+            document.getElementById('eleven-key-modal').classList.add('hidden');
+        }
+
+        function toggleElevenKeyVisibility() {
+            const input = document.getElementById('eleven-key-input');
+            const icon = document.getElementById('eleven-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-sm';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-sm';
+            }
+        }
+
+        function updateElevenKeyStatus() {
+            const statusEl = document.getElementById('eleven-key-status');
+            const isCustom = !!localStorage.getItem('raj_eleven_key');
+            statusEl.classList.remove('hidden');
+            if (isCustom) {
+                statusEl.className = 'mb-3 text-xs font-bold px-3 py-2 rounded-xl bg-emerald-900/50 border border-emerald-500/30 text-emerald-300';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Using your custom ElevenLabs settings';
+            } else {
+                statusEl.className = 'mb-3 text-xs font-bold px-3 py-2 rounded-xl bg-blue-900/50 border border-blue-500/30 text-blue-300';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i> Using built-in default key & voice';
+            }
+        }
+
+        function saveElevenSettings() {
+            const key = document.getElementById('eleven-key-input').value.trim();
+            const voice = document.getElementById('eleven-voice-input').value.trim();
+            if (!key) {
+                showToast('Please enter a valid API key.', 'fa-solid fa-triangle-exclamation text-rose-500');
+                return;
+            }
+            localStorage.setItem('raj_eleven_key', key);
+            elevenLabsApiKey = key;
+            if (voice) {
+                localStorage.setItem('raj_eleven_voice', voice);
+                currentVoiceId = voice;
+            }
+            updateElevenKeyStatus();
+            showToast('ElevenLabs settings saved!', 'fa-solid fa-headset text-cyan-400');
+            speakRajText("My voice settings have been updated! How do I sound?");
+            setTimeout(closeElevenKeyModal, 800);
+        }
+
+        function resetElevenSettings() {
+            localStorage.removeItem('raj_eleven_key');
+            localStorage.removeItem('raj_eleven_voice');
+            elevenLabsApiKey = DEFAULT_ELEVENLABS_KEY;
+            currentVoiceId = "cpCXa9uhSXQaoPrCdtn2";
+            document.getElementById('eleven-key-input').value = '';
+            document.getElementById('eleven-voice-input').value = '';
+            updateElevenKeyStatus();
+            showToast('Reset to default ElevenLabs settings.', 'fa-solid fa-rotate-left text-slate-300');
+        }
+
+        document.getElementById('eleven-key-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeElevenKeyModal();
+        });
+
+        // ── Gemini API Key Modal ──────────────────────────────────────────────
+        function openGeminiKeyModal() {
+            const input = document.getElementById('gemini-key-input');
+            const savedKey = localStorage.getItem('raj_gemini_key');
+            input.value = savedKey || '';
+            updateGeminiKeyStatus();
+            document.getElementById('gemini-key-modal').classList.remove('hidden');
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeGeminiKeyModal() {
+            document.getElementById('gemini-key-modal').classList.add('hidden');
+        }
+
+        function toggleGeminiKeyVisibility() {
+            const input = document.getElementById('gemini-key-input');
+            const icon = document.getElementById('gemini-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-sm';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-sm';
+            }
+        }
+
+        function updateGeminiKeyStatus() {
+            const statusEl = document.getElementById('gemini-key-status');
+            const isCustom = !!localStorage.getItem('raj_gemini_key');
+            statusEl.classList.remove('hidden');
+            if (isCustom) {
+                statusEl.className = 'mb-3 text-xs font-bold px-3 py-2 rounded-xl bg-emerald-900/50 border border-emerald-500/30 text-emerald-300';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Using your custom Gemini API key';
+            } else {
+                statusEl.className = 'mb-3 text-xs font-bold px-3 py-2 rounded-xl bg-blue-900/50 border border-blue-500/30 text-blue-300';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i> Using the built-in default key';
+            }
+        }
+
+        function saveGeminiKey() {
+            const input = document.getElementById('gemini-key-input');
+            const key = input.value.trim();
+            if (!key) {
+                showToast('Please enter a valid API key.', 'fa-solid fa-triangle-exclamation text-rose-500');
+                return;
+            }
+            localStorage.setItem('raj_gemini_key', key);
+            geminiApiKey = key;
+            updateGeminiKeyStatus();
+            showToast('Gemini key saved!', 'fa-brands fa-google text-yellow-400');
+            setTimeout(closeGeminiKeyModal, 800);
+        }
+
+        function resetGeminiKey() {
+            localStorage.removeItem('raj_gemini_key');
+            geminiApiKey = DEFAULT_GEMINI_KEY;
+            document.getElementById('gemini-key-input').value = '';
+            updateGeminiKeyStatus();
+            showToast('Reset to default key.', 'fa-solid fa-rotate-left text-slate-300');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('gemini-key-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeGeminiKeyModal();
+        });
+
+    </script>
+</body>
+</html>
